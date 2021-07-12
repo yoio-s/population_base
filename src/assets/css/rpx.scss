@@ -1,0 +1,7 @@
+@function getVw($px,$width:1440){
+    @return $px/1440* 100vw;
+}
+
+@function rem($rem,$width:1440){
+    @return $rem*7.5 /1440 *100vw;
+}
