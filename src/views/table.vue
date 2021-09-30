@@ -23,12 +23,22 @@
       </div>
       <div style="display: flex">
         <div style="display: flex" v-if="$store.state.permissions_add">
-          <el-button icon="el-icon-plus" type="primary" style="margin-right: 16px;" plain size="mini"
+          <el-dropdown style="margin-right: 16px; cursor: pointer" @command="handleCommand">
+            <span class="el-dropdown-link btn_delete">
+              <i class="el-icon-delete"></i> 批量删除
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="all">删除全部</el-dropdown-item>
+              <el-dropdown-item command="check">删除选中 ({{ checkNum }}条)</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+          <el-button class="btn_add_data" style="margin-right: 16px" icon="el-icon-plus" type="primary" plain
+                     size="mini"
                      @click="addClick()">添加
           </el-button>
           <ExcelBtn></ExcelBtn>
         </div>
-<!--        <el-button style="margin-left: 16px" plain size="mini" >下载数据</el-button>-->
+        <!--        <el-button style="margin-left: 16px" plain size="mini" >下载数据</el-button>-->
         <Download></Download>
       </div>
     </div>
@@ -39,7 +49,12 @@
       :max-height="tableHeight"
       border
       @cell-dblclick="celldblClick"
+      @selection-change="handleSelectionChange"
     >
+      <el-table-column
+        type="selection"
+        width="55">
+      </el-table-column>
       <el-table-column
         v-for="items in tableFields"
         :key="items.id"
@@ -87,7 +102,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-<!--        <el-button size="mini" @click="dialogFormVisible = false">取 消</el-button>-->
+        <!--        <el-button size="mini" @click="dialogFormVisible = false">取 消</el-button>-->
         <el-button size="mini" type="primary" @click="addFilter">添 加</el-button>
         <el-button size="mini" type="primary" @click="sureFilter">查 询</el-button>
       </div>
@@ -133,6 +148,8 @@ export default {
       filterFields: [], // 筛选参数选择
       filterObj: {}, // 筛选条件
       filterSlot: ['GXSJ'], // 排序
+      multipleSelection: [], // 批量删除
+      checkNum: 0,
     }
   },
   async mounted() {
@@ -236,6 +253,67 @@ export default {
           this.$message.error(listData.data.meta.errmsg)
         }
       }
+    },
+    // 多选
+    handleSelectionChange(val) {
+      console.log(val)
+      this.multipleSelection = val
+      this.checkNum = this.multipleSelection.length
+    },
+    handleCommand(command) {
+      // all check
+      if (command === 'all') {
+        this.deteleAllData()
+      } else {
+        this.deteleCheckData()
+      }
+    },
+    async deteleAllData() {
+      const _this = this
+      this.$confirm(`您确定要删除全部数据吗?`, '退出', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      }).then(async () => {
+        const fieldData = {
+          token: _this.AdminData.token,
+        }
+        const resData = await _this.api.deleteAllDataApi(_this.tableName, this.tableNameType, fieldData)
+        if (resData.data.meta.errcode === 0) {
+          _this.$message.success('删除成功！')
+          _this.getTableData()
+        } else {
+          _this.$message.error(resData.data.meta.errmsg)
+        }
+      })
+    },
+    deteleCheckData() {
+      console.log(this.multipleSelection)
+      const Ids = []
+      for (const itemIds of this.multipleSelection) {
+        Ids.push(itemIds.id)
+      }
+
+      const _this = this
+      this.$confirm(`您确定要删除${this.multipleSelection.length}条数据吗?`, '退出', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      }).then(async () => {
+        const fieldData = {
+          token: _this.AdminData.token,
+          ids: Ids,
+        }
+        const resData = await _this.api.deleteListData(_this.tableName, this.tableNameType, fieldData)
+        if (resData.data.meta.errcode === 0) {
+          _this.$message.success('删除成功！')
+          for (const itemIds of this.multipleSelection) {
+            _this.DeleteTableData(itemIds)
+          }
+          _this.listCount = _this.listCount - _this.multipleSelection.length
+        } else {
+          _this.$message.error(resData.data.meta.errmsg)
+        }
+      })
+
     },
     // 分页器方法  每页显示条数
     handleSizeChange(val) {
@@ -384,6 +462,12 @@ export default {
 <style lang="scss" scoped>
 @import "src/assets/css/rpx";
 
+.el-dropdown-menu {
+  .el-dropdown-menu__item {
+    color: #EB5757;
+  }
+}
+
 .table-container {
   padding: 24px getVw(120);
   font-size: 12px;
@@ -410,6 +494,29 @@ export default {
       line-height: 22px;
       padding-top: 0;
       padding-bottom: 0;
+    }
+
+    .btn_delete {
+      font-size: 14px;
+      border: none;
+      background: #FFFFFF;
+      color: #EB5757;
+      padding: 0;
+      //&:hover {
+      //  border: solid 1px #EB5757;
+      //}
+    }
+
+    .btn_add_data {
+      font-size: 14px;
+      padding: 0;
+      border: none;
+      background: #FFFFFF;
+      color: #333333;
+
+      &:hover {
+        color: #2F80ED;
+      }
     }
   }
 }

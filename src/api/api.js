@@ -45,6 +45,10 @@ export default {
   deleteListData(tableName, type, data) {
     return http.post('/apis/dwh/' + tableName + '/delete?proj=' + type, data)
   },
+  // 删除所有数据
+  deleteAllDataApi(tableName, type, data) {
+    return http.post('/apis/dwh/' + tableName + '/emptyData?proj=' + type, data)
+  },
   // 修改数据
   modifyListData(tableName, type, data) {
     return http.post('/apis/dwh/' + tableName + '/update?proj=' + type, data)
@@ -52,5 +56,5 @@ export default {
   // 获取可访问的数据表
   getAllTable(data) {
     return http.post('/apis/dwh/tables', data)
-  }
+  },
 }

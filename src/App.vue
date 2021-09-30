@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <router-view v-if="isRouterAlive"></router-view>
+    <router-view ref="test" v-if="isRouterAlive"></router-view>
   </div>
 </template>
 

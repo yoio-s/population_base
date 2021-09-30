@@ -3,9 +3,9 @@
     <input type="file" @change="importFile(this)" id="imFile" style="display: none"
            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"/>
     <a id="downlink"></a>
-    <div>
-      <el-button plain size="mini" @click="openFileUpload()">数据上传</el-button>
-      <el-button plain size="mini" @click="openLog">上传记录</el-button>
+    <div class="btn_main">
+      <el-button class="btn_add_data" plain size="mini" icon="el-icon-upload" @click="openFileUpload()">数据上传</el-button>
+      <el-button class="btn_add_data" plain size="mini" icon="el-icon-upload2" @click="openLog">上传记录</el-button>
     </div>
 
     <!--    查看记录-->
@@ -54,7 +54,7 @@
 </template>
 
 <script>
-// import XLSX from 'xlsx'
+import XLSX from 'xlsx'
 
 export default {
   name: 'excelBtn',
@@ -143,15 +143,15 @@ export default {
       const listFields = await this.api.getListStructure(this.tableName, this.tableNameType, fieldData)
       if (listFields.data.meta.status_code == 200) {
         const fields = listFields.data.data.fields
-            if (fields) {
-              const excelArr = []
-              const excelObj = {}
-              for (const items of fields) {
-                excelObj[items.name] = ''
-              }
-              excelArr.push(excelObj)
-              return excelArr
-            }
+        if (fields) {
+          const excelArr = []
+          const excelObj = {}
+          for (const items of fields) {
+            excelObj[items.name] = ''
+          }
+          excelArr.push(excelObj)
+          return excelArr
+        }
 
       } else {
         this.$message.error(listFields.data.meta.errmsg)
@@ -279,7 +279,7 @@ export default {
     },
 
     async dealFile(data) { // 处理导入的数据
-      console.log('data',data)
+      console.log('data', data)
       for (const datum of data) {
         for (const dataKey in datum) {
           if (typeof datum[dataKey] === 'object') {
@@ -446,6 +446,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.btn_main {
+  .btn_add_data {
+    padding: 0;
+    border: none;
+    background: #FFFFFF;
+    color: #333333;
+    font-size: 14px;
+    &:hover {
+      color: #2F80ED;
+    }
+  }
+}
+
 .aa:after {
   content: '';
   position: absolute;

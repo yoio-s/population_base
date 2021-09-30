@@ -1,6 +1,7 @@
 <template>
   <div>
-    <el-button style="margin-left: 16px" plain @click="downloadTable()" size="mini">下载数据</el-button>
+    <el-button class="btn_add_data" style="margin-left: 16px" plain @click="downloadTable()" icon="el-icon-download" size="mini">下载数据
+    </el-button>
     <el-dialog title="数据准备中" :modal="false" :visible.sync="downloadFormVisible" width="30%">
       <!--      <el-form label-width="100px">-->
       <!--        <el-form-item label="输入筛选内容" label-position="left">-->
@@ -19,6 +20,8 @@
 </template>
 
 <script>
+import XLSX from 'xlsx'
+
 export default {
   name: 'download',
   data() {
@@ -106,7 +109,7 @@ export default {
         await this.getAllTableData()
       } else {
         const data = this.allData
-        console.log(data)
+        // console.log(data)
         return data
       }
     },
@@ -210,5 +213,11 @@ export default {
 </script>
 
 <style scoped>
-
+.btn_add_data {
+  padding: 0;
+  border: none;
+  background: #FFFFFF;
+  color: #333333;
+  font-size: 14px;
+}
 </style>

@@ -9,7 +9,7 @@
       class="login-form"
       label-position="left"
     >
-      <div class="title">社区微脑</div>
+      <div class="title">社区小脑</div>
       <el-form-item style="margin-top: 48px">
         <el-select v-model="typeValue" placeholder="请选择数据库">
           <el-option
@@ -18,7 +18,7 @@
             :label="item.name"
             :value="item.keyname">
             <span style="float: left">{{ item.name }}</span>
-<!--            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.keyname }}</span>-->
+            <!--            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.keyname }}</span>-->
           </el-option>
         </el-select>
       </el-form-item>
@@ -39,7 +39,7 @@
       class="login-form"
       label-position="left"
     >
-      <div class="title">社区微脑</div>
+      <div class="title">社区小脑</div>
       <!--      <div class="title-tips">{{ title }}</div>-->
       <el-form-item style="margin-top: 48px" prop="account">
             <span class="svg-container svg-container-admin">
@@ -170,8 +170,8 @@ export default {
     document.body.style.overflow = 'auto'
   },
   mounted() {
-    this.form.account = 'admin'
-    this.form.password = '123456'
+    this.form.account = ''
+    this.form.password = ''
     // setTimeout(() => {
     //   this.handleLogin()
     // }, 3000)
@@ -221,22 +221,22 @@ export default {
       this.$store.commit('edit', false)
       this.$store.commit('add', false)
       this.$store.commit('del', false)
-      this.TableValue.forEach((val,index)=>{
-        if (val.keyname == this.typeValue){
+      this.TableValue.forEach((val, index) => {
+        if (val.keyname == this.typeValue) {
           for (const items of val.permissions) {
-            switch (items){
+            switch (items) {
               case 'r':
                 this.$store.commit('cat', true)
-                break;
+                break
               case 'e':
                 this.$store.commit('edit', true)
-                break;
+                break
               case 'a':
                 this.$store.commit('add', true)
-                break;
+                break
               case 'd':
                 this.$store.commit('del', true)
-                break;
+                break
             }
           }
         }
