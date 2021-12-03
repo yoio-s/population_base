@@ -27,6 +27,7 @@ const removePending = (config) => {
     }
   }
 }
+
 // 2.请求拦截器
 service.interceptors.request.use(
   (config) => {

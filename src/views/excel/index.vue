@@ -55,6 +55,7 @@
 
 <script>
 import XLSX from 'xlsx'
+import axios from 'axios'
 
 export default {
   name: 'excelBtn',
@@ -80,6 +81,7 @@ export default {
       uploadFileName: '',
       uploadFlieSize: '',
       fileData: [],
+      loadingInstance:{} //loading加载
     }
   },
   // watch: {
@@ -159,10 +161,17 @@ export default {
     },
 
     importFile() { // 导入excel
-      this.fullscreenLoading = true
+      // this.fullscreenLoading = true
+      this.loadingInstance =  this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.3)',
+      })
       const obj = this.imFile
       if (!obj.files) {
         this.fullscreenLoading = false
+        this.loadingInstance.close()
         return
       }
 
@@ -315,6 +324,7 @@ export default {
             dataArr.push(obj)
           }
           this.fileData = dataArr
+          this.loadingInstance.close()
           // this.putExcelList(dataArr)
         }
       }
@@ -383,12 +393,37 @@ export default {
     async putExcelList(excelData) {
       if (this.fileData.length != 0) {
         console.log(this.fileData)
-        const data = {
-          token: this.common.getLocalStorage('Token').token,
-          data: this.fileData,
-        }
-        const statusDate = await this.api.putListData(this.tableName, this.tableNameType, data)
+        this.loadingInstance =  this.$loading({
+          lock: true,
+          text: '正在上传中。。',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.3)',
+        })
+        const content = JSON.stringify(this.fileData)
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' }) // 把数据转化成blob对象
+        // console.log(blob, "blob");
+        let file = new File([blob], this.uploadFileName, { lastModified: Date.now() }); // blob转file
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('token', this.common.getLocalStorage('Token').token);
+        const statusDate = await this.api.putListDataFile(this.tableName, this.tableName, formData)
+
+        // var config = {
+        //   onUploadProgress: progressEvent => {
+        //     var complete = (progressEvent.loaded / progressEvent.total * 100 | 0) + '%'
+        //     this.progress = complete
+        //   }
+        // }
+        // axios.post('/apis/dwh/' + this.tableName + '/importFile?proj=' + this.tableName,
+        //   formData, config).then((res) => {
+        //   if (res.data.status === 200) {
+        //     console.log('上传成功')
+        //   }
+        // })
+
         if (statusDate.status === 200) {
+          this.loadingInstance.close()
           if (statusDate.data.meta.status_code === 200) {
             this.dialogUpload = false
             this.$router.go(0)
@@ -579,6 +614,19 @@ export default {
       line-height: 48px;
       padding: 0 16px;
 
+    }
+  }
+}
+</style>
+<style lang="scss">
+.loading_class {
+  .el-loading-spinner {
+    //i {
+    //  color: rgb(255, 152, 0);
+    //}
+
+    .el-loading-text {
+      font-size: 16px;
     }
   }
 }

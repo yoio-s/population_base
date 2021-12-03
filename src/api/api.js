@@ -13,6 +13,10 @@ export default {
   getAdminQuit(tableName, type, data) {
     return http.post('/apis/dwh/' + tableName + '/sign_out?proj=' + type, data)
   },
+  // 发送短信验证码
+  postSMSCode(tableName, type, data) {
+    return http.post('/apis/dwh/' + tableName + '/sendSMSCode?proj=' + type, data)
+  },
   // 数据
   getListData(table, data) {
     return http.post('/apis/dwh/' + table.name + '/list?proj=' + table.type + '&page=' + table.page + '&page_size=' + table.pageSize, data)
@@ -28,6 +32,10 @@ export default {
   // 导入表格
   putListData(tableName, type, data) {
     return http.post('/apis/dwh/' + tableName + '/import?proj=' + type, data)
+  },
+  // 导入表格file格式
+  putListDataFile(tableName, type, data) {
+    return http.post('/apis/dwh/' + tableName + '/importFile?proj=' + type, data)
   },
   // 查询导入状态
   importStatus(tableName, type, data) {

@@ -116,6 +116,7 @@
 import ExcelBtn from '../views/excel/index'
 import Editor from '../views/editor/index'
 import Download from './download/index'
+import { Toast } from 'vant'
 
 export default {
   name: 'home',
@@ -157,6 +158,10 @@ export default {
     // this.tableHeight = (650/900)*window.innerHeight
     // console.log('tableName', this.$store.state.tableName)
     // this.$store.commit('edit','wllz')
+    const pop_cached_filters = sessionStorage.getItem('pop_cached_filters')
+    if (pop_cached_filters) {
+      this.dynamicTags = JSON.parse(pop_cached_filters)
+    }
     this.getTableLabel()
   },
   filters: {
@@ -190,7 +195,12 @@ export default {
           this.filterFields = JSON.parse(JSON.stringify(fields))
           // console.log(JSON.parse(JSON.stringify(this.tableFields)))
         } else {
-          this.$message.error(listFields.data.meta.errmsg)
+          if (listFields.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            this.$router.push('/loginRkk')
+          } else {
+            this.$message.error(listFields.data.meta.errmsg)
+          }
         }
 
         const data = {
@@ -216,7 +226,12 @@ export default {
           this.listCount = listData.data.pagination.total
           this.tableData = listData.data.data
         } else {
-          this.$message.error(listData.data.meta.errmsg)
+          if (listData.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            this.$router.push('/loginRkk')
+          } else {
+            this.$message.error(listData.data.meta.errmsg)
+          }
         }
       }
 
@@ -250,7 +265,12 @@ export default {
           this.listCount = listData.data.pagination.total
           this.tableData = listData.data.data
         } else {
-          this.$message.error(listData.data.meta.errmsg)
+          if (listData.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            this.$router.push('/loginRkk')
+          } else {
+            this.$message.error(listData.data.meta.errmsg)
+          }
         }
       }
     },
@@ -282,7 +302,12 @@ export default {
           _this.$message.success('删除成功！')
           _this.getTableData()
         } else {
-          _this.$message.error(resData.data.meta.errmsg)
+          if (resData.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            _this.$router.push('/loginRkk')
+          } else {
+            _this.$message.error(resData.data.meta.errmsg)
+          }
         }
       })
     },
@@ -310,7 +335,12 @@ export default {
           }
           _this.listCount = _this.listCount - _this.multipleSelection.length
         } else {
-          _this.$message.error(resData.data.meta.errmsg)
+          if (resData.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            _this.$router.push('/loginRkk')
+          } else {
+            _this.$message.error(resData.data.meta.errmsg)
+          }
         }
       })
 
@@ -409,7 +439,12 @@ export default {
           _this.DeleteTableData(rowValue)
           _this.listCount--
         } else {
-          _this.$message.error(resData.data.meta.errmsg)
+          if (resData.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            _this.$router.push('/loginRkk')
+          } else {
+            _this.$message.error(resData.data.meta.errmsg)
+          }
         }
       })
     },

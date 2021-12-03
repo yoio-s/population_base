@@ -49,37 +49,48 @@
         <el-input
           v-model.trim="form.account"
           v-focus
-          placeholder="请输入账号"
+          placeholder="请输入手机号"
           tabindex="1"
           type="text"
         />
       </el-form-item>
-      <el-form-item prop="password">
-            <span class="svg-container">
-<!--              <vab-icon :icon="['fas', 'lock']"/>-->
-              <i class="el-icon-lock"></i>
+      <!--      <el-form-item prop="password">-->
+      <!--            <span class="svg-container">-->
+      <!--&lt;!&ndash;              <vab-icon :icon="['fas', 'lock']"/>&ndash;&gt;-->
+      <!--              <i class="el-icon-lock"></i>-->
+      <!--            </span>-->
+      <!--        <el-input-->
+      <!--          :key="passwordType"-->
+      <!--          ref="password"-->
+      <!--          v-model.trim="form.password"-->
+      <!--          :type="passwordType"-->
+      <!--          tabindex="2"-->
+      <!--          placeholder="请输入密码"-->
+      <!--          @keyup.enter.native="handleLogin"-->
+      <!--        />-->
+      <!--        <span-->
+      <!--          v-if="passwordType === 'password'"-->
+      <!--          class="show-password"-->
+      <!--          @click="handlePassword"-->
+      <!--        >-->
+      <!--               <i class="el-icon-view"></i>-->
+      <!--          &lt;!&ndash;              <vab-icon :icon="['fas', 'eye-slash']"></vab-icon>&ndash;&gt;-->
+      <!--        </span>-->
+      <!--        <span v-else class="show-password" @click="handlePassword">-->
+      <!--&lt;!&ndash;              <vab-icon :icon="['fas', 'eye']"></vab-icon>&ndash;&gt;-->
+      <!--              <i class="el-icon-view"></i>-->
+      <!--         </span>-->
+      <!--      </el-form-item> -->
+      <el-form-item prop="code">
+            <span class="svg-container svg-container-admin">
+              <i class="el-icon-user"></i>
             </span>
-        <el-input
-          :key="passwordType"
-          ref="password"
-          v-model.trim="form.password"
-          :type="passwordType"
-          tabindex="2"
-          placeholder="请输入密码"
-          @keyup.enter.native="handleLogin"
-        />
-        <span
-          v-if="passwordType === 'password'"
-          class="show-password"
-          @click="handlePassword"
-        >
-               <i class="el-icon-view"></i>
-          <!--              <vab-icon :icon="['fas', 'eye-slash']"></vab-icon>-->
-            </span>
-        <span v-else class="show-password" @click="handlePassword">
-<!--              <vab-icon :icon="['fas', 'eye']"></vab-icon>-->
-              <i class="el-icon-view"></i>
-            </span>
+        <el-input placeholder="请输入验证码" v-model.trim="form.code">
+          <template slot="append">
+            <div class="send_sms_code" v-if="iSCode" @click="sendSMSCode()">{{ getSmsCode }}</div>
+            <div class="send_sms_code" style="color: #DCDFE6" v-else>{{ codeSecond }}</div>
+          </template>
+        </el-input>
       </el-form-item>
       <el-button
         :loading="loading"
@@ -117,7 +128,7 @@ export default {
     }
     const validatePassword = (rule, value, callback) => {
       if (!this.common.isPassword(value)) {
-        callback(new Error('密码不能少于6位'))
+        callback(new Error('验证码不能少于6位'))
       } else {
         callback()
       }
@@ -132,7 +143,7 @@ export default {
       typeValue: '',
       form: {
         account: '',
-        password: '',
+        code: '',
       },
       rules: {
         account: [
@@ -142,7 +153,7 @@ export default {
             validator: validateusername,
           },
         ],
-        password: [
+        code: [
           {
             required: true,
             trigger: 'blur',
@@ -153,6 +164,10 @@ export default {
       loading: false,
       passwordType: 'password',
       redirect: undefined,
+      getSmsCode: '获取验证码',
+      iSCode: true,
+      codeSecond: '60S后可重发',
+      countdownTime: 60,
     }
   },
   watch: {
@@ -171,7 +186,7 @@ export default {
   },
   mounted() {
     this.form.account = ''
-    this.form.password = ''
+    this.form.code = ''
     // setTimeout(() => {
     //   this.handleLogin()
     // }, 3000)
@@ -184,6 +199,34 @@ export default {
       this.$nextTick(() => {
         this.$refs.password.focus()
       })
+    },
+    // 短信验证码
+    async sendSMSCode() {
+      console.log('短信验证码')
+      this.iSCode = false
+      this.countDown()
+      console.log(this.form.account)
+      const params = {
+        "action": "sign_in",
+        "mobile": this.form.account //账户或手机号
+      }
+      const resData = await this.api.postSMSCode(this.globals.tableName.user, this.globals.typeName.rkk, params)
+      if (resData.data.meta.status_code !== 200) {
+        this.$message.error('手机号码错误！')
+      }
+    },
+    countDown() {
+      const _this = this
+      if (this.countdownTime == 0) {
+        this.iSCode = true
+        this.countdownTime = 60;
+      } else {
+        this.countdownTime--;
+        this.codeSecond = this.countdownTime + 'S后可重发'
+        setTimeout(function() {
+          _this.countDown()
+        },1000)
+      }
     },
     handleLogin() {
       const _this = this
@@ -422,6 +465,20 @@ export default {
         background: #ffffff;
         border: 0;
         caret-color: $base-font-color;
+      }
+
+      .el-input-group__append {
+        background: #fff;
+        border: none;
+        padding: 0;
+
+        .send_sms_code {
+          font-size: 12px;
+          color: #409EFF;
+          background: #ffffff;
+          padding: 8px;
+          cursor: pointer;
+        }
       }
     }
 

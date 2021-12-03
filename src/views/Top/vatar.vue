@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import { Toast } from 'vant'
 export default {
   name: 'VabAvatar',
   data() {
@@ -78,10 +79,15 @@ export default {
           }
           // this.$router.go(0)
         } else {
-          this.$message({
-            type: 'error',
-            message: quitAdmin.data.meta.errmsg,
-          })
+          if (quitAdmin.data.meta.errcode === 4103) {
+            Toast('账户验证失败，请重新登录')
+            this.$router.push('/loginRkk')
+          } else {
+            this.$message({
+              type: 'error',
+              message: quitAdmin.data.meta.errmsg,
+            })
+          }
         }
 
         console.log(quitAdmin)
