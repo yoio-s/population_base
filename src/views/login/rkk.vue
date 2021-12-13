@@ -203,29 +203,35 @@ export default {
     // 短信验证码
     async sendSMSCode() {
       console.log('短信验证码')
-      this.iSCode = false
-      this.countDown()
+
       console.log(this.form.account)
-      const params = {
-        "action": "sign_in",
-        "mobile": this.form.account //账户或手机号
+      if (this.form.account) {
+        this.iSCode = false
+        this.countDown()
+        const params = {
+          'action': 'sign_in',
+          'mobile': this.form.account, //账户或手机号
+        }
+        const resData = await this.api.postSMSCode(this.globals.tableName.user, this.globals.typeName.rkk, params)
+        if (resData.data.meta.status_code !== 200) {
+          this.$message.error('手机号码错误！')
+        }
+      } else {
+        this.$message.error('请输入手机号！')
       }
-      const resData = await this.api.postSMSCode(this.globals.tableName.user, this.globals.typeName.rkk, params)
-      if (resData.data.meta.status_code !== 200) {
-        this.$message.error('手机号码错误！')
-      }
+
     },
     countDown() {
       const _this = this
       if (this.countdownTime == 0) {
         this.iSCode = true
-        this.countdownTime = 60;
+        this.countdownTime = 60
       } else {
-        this.countdownTime--;
+        this.countdownTime--
         this.codeSecond = this.countdownTime + 'S后可重发'
-        setTimeout(function() {
+        setTimeout(function () {
           _this.countDown()
-        },1000)
+        }, 1000)
       }
     },
     handleLogin() {
