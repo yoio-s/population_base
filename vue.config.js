@@ -19,7 +19,7 @@ module.exports = {
   outputDir: 'population_base',
   chainWebpack: (config) => {
     config.plugin("html").tap((args) => {
-      args[0].title = "人口库数据表格查看"
+      args[0].title = "高新区基础库"
       return args
     })
     // 添加别名

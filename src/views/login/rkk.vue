@@ -2,14 +2,14 @@
   <div class="login-container">
 
     <div class="login_right_images" style="color: transparent">
-      <img src="@/assets/img/Rectangle.png">
+      <img src="@/assets/img/Rectangles.jpeg">
     </div>
     <el-form
       v-if="chooseView"
       class="login-form"
       label-position="left"
     >
-      <div class="title">社区小脑</div>
+      <div class="title">高新区基础库</div>
       <el-form-item style="margin-top: 48px">
         <el-select v-model="typeValue" placeholder="请选择数据库">
           <el-option
@@ -39,7 +39,7 @@
       class="login-form"
       label-position="left"
     >
-      <div class="title">社区小脑</div>
+      <div class="title">高新区基础库</div>
       <!--      <div class="title-tips">{{ title }}</div>-->
       <el-form-item style="margin-top: 48px" prop="account">
             <span class="svg-container svg-container-admin">
