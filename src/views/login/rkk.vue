@@ -18,7 +18,7 @@
             :label="item.name"
             :value="item.keyname">
             <span style="float: left">{{ item.name }}</span>
-            <!--            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.keyname }}</span>-->
+            <!--            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.keyname }}</span>  -->
           </el-option>
         </el-select>
       </el-form-item>

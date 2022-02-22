@@ -20,6 +20,9 @@
         >
           查询
         </el-button>
+        <el-button v-if="AdminData.mobile === '18202315651'" size="mini" style="margin-right: 8px" type="primary" @click="handleEntry">
+          跨系统录入
+        </el-button>
       </div>
       <div style="display: flex">
         <div style="display: flex" v-if="$store.state.permissions_add">
@@ -360,6 +363,30 @@ export default {
       this.currentPage = 1
       this.searchFilter()
     },
+
+    async handleEntry() {
+      const parames = {
+          userName : this.tableData[0].Name,
+          mPhone: this.tableData[0].PhoneNum,
+          cardId: this.tableData[0].CertificateNum,
+          bljc: this.tableData[0].test1,
+          styc: this.tableData[0].test2,
+          jkm: this.tableData[0].test3,
+          jwlj: this.tableData[0].test4,
+          swlj: this.tableData[0].test5,
+          houseNumber: this.tableData[0].test6,
+          lydz: this.tableData[0].test7,
+          cfrq:this.tableData[0].test8,
+          darq: this.tableData[0].test9,
+          jzd: this.tableData[0].test10,
+          jzdz: this.tableData[0].test11,
+          jtgj :this.tableData[0].test12,
+          bblx : this.tableData[0].test14,
+          hsbg:this.tableData[0].test6,
+      }
+      await this.api.postEntry(parames)
+    },
+
     handleClose(tag) {
       this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1)
       delete this.filterObj[tag.tagName + '__contains']

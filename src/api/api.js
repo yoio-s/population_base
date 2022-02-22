@@ -65,4 +65,8 @@ export default {
   getAllTable(data) {
     return http.post('/apis/dwh/tables', data)
   },
+  // 录入三方数据
+  postEntry(data) {
+    return http.get('/WMServer/wiseMotion/process/7ef7c3bb-8e10-11ec-bcb2-525400a05fe3', data)
+  }
 }

@@ -48,7 +48,11 @@ module.exports = {
   devServer: {
     proxy: {
       '/apis': {
-        target: 'https://gxfw.web.cdyoue.com',
+        target: 'https://gxzh.cdht.gov.cn',
+        changOrigin: true,
+      },
+      '/WMServer': {
+        target: 'http://www.wosoo.net:18089',
         changOrigin: true,
       },
     },
