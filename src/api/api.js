@@ -68,5 +68,9 @@ export default {
   // 录入三方数据
   postEntry(data) {
     return http.get('/WMServer/wiseMotion/process/7ef7c3bb-8e10-11ec-bcb2-525400a05fe3', data)
-  }
+  },
+  // skylark code 登陆
+  postSkylarkCode(data) {
+    return http.post('/apis/dwh/thirdAuth', data)
+  },
 }

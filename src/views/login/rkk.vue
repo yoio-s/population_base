@@ -202,9 +202,6 @@ export default {
     },
     // 短信验证码
     async sendSMSCode() {
-      console.log('短信验证码')
-
-      console.log(this.form.account)
       if (this.form.account) {
         this.iSCode = false
         this.countDown()
@@ -242,7 +239,6 @@ export default {
           this.loading = true
 
           const accountAdmin = await _this.api.getAdminLogin(this.globals.tableName.user, this.globals.typeName.rkk, this.form)
-          console.log(accountAdmin)
           if (accountAdmin.data.meta.status_code === 200) {
             this.loading = false
             _this.common.setLocalStorage('Token', accountAdmin.data.data)
@@ -254,11 +250,9 @@ export default {
             const tableList = await this.api.getAllTable(fieldData)
             this.TableValue = tableList.data.data
           } else {
-            // console.log(accountAdmin.data.meta.errmsg)
             this.$message.error(accountAdmin.data.meta.errmsg)
             this.loading = false
           }
-          // this.$router.push('index')
         } else {
           return false
         }

@@ -51,6 +51,10 @@ module.exports = {
         target: 'https://gxzh.cdht.gov.cn',
         changOrigin: true,
       },
+      '/oauth': {
+        target: 'https://gxzh.cdht.gov.cn',
+        changOrigin: true,
+      },
       '/WMServer': {
         target: 'http://www.wosoo.net:18089',
         changOrigin: true,
