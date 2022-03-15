@@ -1,7 +1,16 @@
 <template>
   <div>
-    <el-button class="btn_add_data" style="margin-left: 16px" plain @click="downloadTable()" icon="el-icon-download" size="mini">下载数据
-    </el-button>
+<!--    <el-button class="btn_add_data" style="margin-left: 16px" plain @click="downloadTable()" icon="el-icon-download" size="mini">下载数据-->
+<!--    </el-button>-->
+    <el-dropdown class="btn_add_data" style="margin-left: 10px; cursor: pointer" @command="handleCommand">
+            <span class="el-dropdown-link btn_delete">
+              <i class="el-icon-download"></i> 下载数据
+            </span>
+      <el-dropdown-menu slot="dropdown">
+        <el-dropdown-item command="all">下载全部数据</el-dropdown-item>
+        <el-dropdown-item command="check">下载当前数据</el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
     <el-dialog title="数据准备中" :modal="false" :visible.sync="downloadFormVisible" width="30%">
       <!--      <el-form label-width="100px">-->
       <!--        <el-form-item label="输入筛选内容" label-position="left">-->
@@ -24,6 +33,9 @@ import XLSX from 'xlsx'
 
 export default {
   name: 'download',
+  props: {
+    filter: Object
+  },
   data() {
     return {
       downloadFormVisible: false,
@@ -32,6 +44,7 @@ export default {
       tableName: this.common.getLocalStorage('TABLE_NAME'), // 表格名字
       thisPage: 0,
       allData: [],
+      downloadAll: true,
     }
   },
   mounted() {
@@ -40,6 +53,18 @@ export default {
     this.outFile = document.getElementById('downTable')
   },
   methods: {
+    handleCommand(command) {
+      // all check
+      if (command === 'all') {
+        // 下载全部
+        this.downloadAll = true
+        this.downloadTable()
+      } else {
+        // 下载选中
+        this.downloadAll = false
+        this.downloadTable()
+      }
+    },
     async downloadTable() {
       // this.downloadFormVisible = true
       if (this.AdminData) {
@@ -49,9 +74,14 @@ export default {
         const listFields = await this.api.getListStructure(this.tableName, this.tableNameType, fieldData)
         // console.log('listFields', listFields)
         if (listFields.data.meta.status_code == 200) {
+          let fields = []
           const TableName = listFields.data.data.name
-          const fields = listFields.data.data.fields
-          if (fields) {
+          if (this.downloadAll) {
+            fields = listFields.data.data.fields
+          } else {
+            fields = this.common.getLocalStorage(listFields.data.data.keyname+ 'TABLE_HIDDEN')
+          }
+          if (fields.length) {
             const labelArr = []
             // const excelArr = []
             // const excelObj = {}
@@ -64,11 +94,9 @@ export default {
             }
             // excelArr.push(excelObj)
 
-            const returnAll = await this.getAllTableData()
+            await this.getAllTableData()
             const AllTable = []
-            // console.log(returnAll)
             for (const Element of this.allData) {
-              // console.log(Element)
               const Obj = {}
               for (const labelItem of labelArr) {
                 if (Element[labelItem.key]) {
@@ -79,23 +107,25 @@ export default {
               }
               AllTable.push(Obj)
             }
-            // const AllTable = excelArr.concat(returnAll)
-            // console.log('excelArrexcelArr', AllTable)
-            this.downloadFile(AllTable, TableName)
+            await this.downloadFile(AllTable, TableName)
+            // 清空
+            this.thisPage = 0
+            this.allData = []
           }
 
         } else {
           this.$message.error(listFields.data.meta.errmsg)
         }
         // return listFields.data.data.fields
-
       }
 
     },
     async getAllTableData() {
       this.thisPage++
-      const data = {
-        token: this.AdminData.token,
+      const data = {}
+      data['token'] = this.AdminData.token
+      if (!this.downloadAll) {
+        data['filter'] =  this.$props.filter
       }
       const tableJson = {
         name: this.tableName,
@@ -109,7 +139,6 @@ export default {
         await this.getAllTableData()
       } else {
         const data = this.allData
-        // console.log(data)
         return data
       }
     },
@@ -212,12 +241,19 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .btn_add_data {
   padding: 0;
   border: none;
   background: #FFFFFF;
   color: #333333;
   font-size: 14px;
+  font-weight: 500;
+}
+.el-dropdown-menu {
+  .el-dropdown-menu__item {
+    font-size: 14px;
+    font-weight: 500;
+  }
 }
 </style>

@@ -20,7 +20,8 @@
         >
           查询
         </el-button>
-        <el-button v-if="AdminData.mobile === '18202315651'" size="mini" style="margin-right: 8px" type="primary" @click="handleEntry">
+        <el-button v-if="AdminData.mobile === '18202315651'" size="mini" style="margin-right: 8px" type="primary"
+                   @click="handleEntry">
           跨系统录入
         </el-button>
       </div>
@@ -30,11 +31,24 @@
             <span class="el-dropdown-link btn_delete">
               <i class="el-icon-delete"></i> 批量删除
             </span>
-            <el-dropdown-menu slot="dropdown">
+            <el-dropdown-menu class="drop_delete" slot="dropdown">
               <el-dropdown-item command="all">删除全部</el-dropdown-item>
               <el-dropdown-item command="check">删除选中 ({{ checkNum }}条)</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
+
+          <el-dropdown style="margin-right: 16px; cursor: pointer" :hide-on-click="false" @command="handleCheckCommand">
+            <span class="el-dropdown-link btn_field_show">
+              <i class="el-icon-s-grid"></i> 显示字段
+            </span>
+            <el-dropdown-menu class="drop_field_filter" slot="dropdown">
+              <el-dropdown-item v-for="field in tableFields" :key="field.id" :command="field.key"
+                                :style="tableFieldsCheck.some(e => e.key === field.key) ? 'color: #2f80ed':''">
+                {{ field.name }}<i v-if="tableFieldsCheck.some(e => e.key === field.key)" class="el-icon-check"></i>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
           <el-button class="btn_add_data" style="margin-right: 16px" icon="el-icon-plus" type="primary" plain
                      size="mini"
                      @click="addClick()">添加
@@ -42,7 +56,7 @@
           <ExcelBtn></ExcelBtn>
         </div>
         <!--        <el-button style="margin-left: 16px" plain size="mini" >下载数据</el-button>-->
-        <Download></Download>
+        <Download :filter="filterObj"></Download>
       </div>
     </div>
 
@@ -59,7 +73,7 @@
         width="55">
       </el-table-column>
       <el-table-column
-        v-for="items in tableFields"
+        v-for="items in tableFieldsCheck"
         :key="items.id"
         :prop="items.key"
         :label="items.name"
@@ -92,7 +106,7 @@
                      :total="listCount"></el-pagination>
     </div>
     <!--    添加筛选dialog-->
-    <el-dialog title="添加筛选" :modal="false" :visible.sync="dialogFormVisible" width="30%">
+    <el-dialog class="filter_dialog" title="添加筛选" :modal="false" :visible.sync="dialogFormVisible" width="30%">
       <el-form label-width="100px">
         <el-form-item label="选择" label-position="left">
           <el-select size="small" v-model="region" placeholder="选择筛选类别" style="width: 100%">
@@ -100,8 +114,14 @@
                        :value="item.key"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="输入筛选内容" label-position="left">
-          <el-input size="small" v-model="filterName" placeholder="请输入内容" style="width: 100%"></el-input>
+        <el-form-item class="filter_select_item" label="筛选内容" label-position="left">
+          <el-select style="min-width: 30px; max-width: 90px" v-model="filterValueType" size="small" placeholder="请选择">
+            <el-option label="包含" value="contains"></el-option>
+            <el-option label="为空" value="null"></el-option>
+            <el-option label="不为空" value="notNull"></el-option>
+          </el-select>
+          <el-input v-if="filterValueType==='contains'" size="small" v-model="filterName" placeholder="请输入内容"
+                    style="width: 100%; margin-left: 16px"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -138,6 +158,7 @@ export default {
       tableName: this.common.getLocalStorage('TABLE_NAME'), // 表格名字
       tableData: [], // 表格数据
       tableFields: [], // 表头数据
+      tableFieldsCheck: [],
       // 分页器
       currentPage: 1,
       pageSize: 50,
@@ -148,6 +169,7 @@ export default {
       region: '',
       dialogFormVisible: false,
       filterName: '',
+      filterValueType: '',
       filterFieldsmain: [], // 筛选参数选择主
       filterFields: [], // 筛选参数选择
       filterObj: {}, // 筛选条件
@@ -194,9 +216,17 @@ export default {
         if (listFields.data.meta.status_code == 200) {
           const fields = listFields.data.data.fields
           this.tableFields = JSON.parse(JSON.stringify(fields))
+          this.tableFieldsCheck = JSON.parse(JSON.stringify(fields))
           this.filterFieldsmain = JSON.parse(JSON.stringify(fields))
           this.filterFields = JSON.parse(JSON.stringify(fields))
           // console.log(JSON.parse(JSON.stringify(this.tableFields)))
+          // 存储字段隐藏数据
+          const tableFields = this.common.getLocalStorage(this.tableName + 'TABLE_HIDDEN')
+          if (tableFields) {
+            this.tableFieldsCheck = tableFields
+          } else {
+            this.common.setLocalStorage(this.tableName + 'TABLE_HIDDEN', this.tableFieldsCheck)
+          }
         } else {
           if (listFields.data.meta.errcode === 4103) {
             Toast('账户验证失败，请重新登录')
@@ -222,8 +252,6 @@ export default {
         }
         const listData = await this.api.getListData(tableJson, data)
         // const AllData = await this.api.getAllListData(this.tableName, this.globals.typeName.rkk, data)
-        // console.log(AllData)
-        // console.log(listData)
         loading.close()
         if (listData.data.meta.status_code === 200) {
           this.listCount = listData.data.pagination.total
@@ -290,6 +318,24 @@ export default {
       } else {
         this.deteleCheckData()
       }
+    },
+    handleCheckCommand(command) {
+      const index = this.tableFieldsCheck.findIndex(field => {
+        return field.key === command
+      })
+      if (index !== -1) {
+        this.tableFieldsCheck.splice(index, 1)
+      } else {
+        const findIndex = this.tableFields.findIndex(field => {
+          return field.key === command
+        })
+        const item = this.tableFields.find(field => {
+          return field.key === command
+        })
+        this.tableFieldsCheck.splice(findIndex, 0, item)
+        // this.tableFieldsCheck.push()
+      }
+      this.common.setLocalStorage(this.tableName + 'TABLE_HIDDEN', this.tableFieldsCheck)
     },
     async deteleAllData() {
       const _this = this
@@ -366,30 +412,37 @@ export default {
 
     async handleEntry() {
       const parames = {
-          userName : this.tableData[0].Name,
-          mPhone: this.tableData[0].PhoneNum,
-          cardId: this.tableData[0].CertificateNum,
-          bljc: this.tableData[0].test1,
-          styc: this.tableData[0].test2,
-          jkm: this.tableData[0].test3,
-          jwlj: this.tableData[0].test4,
-          swlj: this.tableData[0].test5,
-          houseNumber: this.tableData[0].test6,
-          lydz: this.tableData[0].test7,
-          cfrq:this.tableData[0].test8,
-          darq: this.tableData[0].test9,
-          jzd: this.tableData[0].test10,
-          jzdz: this.tableData[0].test11,
-          jtgj :this.tableData[0].test12,
-          bblx : this.tableData[0].test14,
-          hsbg:this.tableData[0].test6,
+        userName: this.tableData[0].Name,
+        mPhone: this.tableData[0].PhoneNum,
+        cardId: this.tableData[0].CertificateNum,
+        bljc: this.tableData[0].test1,
+        styc: this.tableData[0].test2,
+        jkm: this.tableData[0].test3,
+        jwlj: this.tableData[0].test4,
+        swlj: this.tableData[0].test5,
+        houseNumber: this.tableData[0].test6,
+        lydz: this.tableData[0].test7,
+        cfrq: this.tableData[0].test8,
+        darq: this.tableData[0].test9,
+        jzd: this.tableData[0].test10,
+        jzdz: this.tableData[0].test11,
+        jtgj: this.tableData[0].test12,
+        bblx: this.tableData[0].test14,
+        hsbg: this.tableData[0].test6,
       }
       await this.api.postEntry(parames)
     },
 
     handleClose(tag) {
+      let deleteKey = '';
       this.dynamicTags.splice(this.dynamicTags.indexOf(tag), 1)
-      delete this.filterObj[tag.tagName + '__contains']
+
+      for (const objKey in this.filterObj) {
+        if (objKey.includes(tag.tagName)) {
+          deleteKey = objKey
+        }
+      }
+      delete this.filterObj[deleteKey]
       for (const items of this.filterFieldsmain) {
         if (items.key === tag.tagName) {
           this.filterFields.splice(this.filterFieldsmain.indexOf(items), 0, items)
@@ -403,23 +456,48 @@ export default {
     },
     // 添加筛选条件
     addFilter() {
-      const filterKey = this.region + '__contains'
-      const filterShow = {
-        tagName: this.region,
-        tagValue: this.filterName,
-      }
-      if (this.filterName) {
-        this.dynamicTags.push(filterShow)
-        this.filterObj[filterKey] = this.filterName
-        for (const items of this.filterFields) {
-          if (items.key === this.region) {
-            this.filterFields.splice(this.filterFields.indexOf(items), 1)
+      // NM__in:[null] 为空
+      // NM__nin:[null] 不为空
+      let filterKey;
+      const filterShow = {};
+      switch (this.filterValueType) {
+        case 'contains' :
+          if (this.filterName) {
+            filterKey = this.region + '__contains'
+            filterShow['tagName'] = this.region
+            filterShow['tagValue'] = this.filterName
+            this.dynamicTags.push(filterShow)
+            this.filterObj[filterKey] = this.filterName
           }
+          break
+        case 'null':
+          filterKey = this.region + '__in'
+          filterShow['tagName'] = this.region
+          filterShow['tagValue'] = '空'
+          this.dynamicTags.push(filterShow)
+          this.filterObj[filterKey] = [null]
+          break
+        case 'notNull':
+          filterKey = this.region + '__nin'
+          filterShow['tagName'] = this.region
+          filterShow['tagValue'] = '非空'
+          this.dynamicTags.push(filterShow)
+          this.filterObj[filterKey] = [null]
+          break
+        default:
+          return false
+          break
+      }
+
+      for (const items of this.filterFields) {
+        if (items.key === this.region) {
+          this.filterFields.splice(this.filterFields.indexOf(items), 1)
         }
       }
       this.dialogFormVisible = false
       this.filterName = ''
       this.region = ''
+      this.filterValueType = ''
     },
     // 添加筛选条件并查询
     sureFilter() {
@@ -524,9 +602,21 @@ export default {
 <style lang="scss" scoped>
 @import "src/assets/css/rpx";
 
-.el-dropdown-menu {
+.drop_delete {
   .el-dropdown-menu__item {
     color: #EB5757;
+  }
+}
+
+.drop_field_filter {
+  .el-dropdown-menu__item {
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #333333;
+    font-size: 14px;
+    font-weight: 500;
   }
 }
 
@@ -569,6 +659,12 @@ export default {
       //}
     }
 
+    .btn_field_show {
+      font-size: 14px;
+      color: #333333;
+      font-weight: 500;
+    }
+
     .btn_add_data {
       font-size: 14px;
       padding: 0;
@@ -596,5 +692,23 @@ export default {
 .dialog_container {
   background: #F2F2F2;
 }
+
+::v-deep {
+  .filter_dialog {
+    .el-dialog {
+      min-width: 450px;
+    }
+  }
+
+  .filter_select_item {
+    .el-form-item__content {
+      margin-left: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+  }
+}
+
 
 </style>
