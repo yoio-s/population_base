@@ -199,6 +199,11 @@ html {
                         font-family: PingFang SC;
                         font-style: normal;
                         font-weight: 500;
+                        //text-overflow: ellipsis;
+                        //overflow: hidden;
+                        //white-space: nowrap;
+                        word-break: keep-all !important;
+                        white-space: nowrap !important;
                     }
                 }
             }

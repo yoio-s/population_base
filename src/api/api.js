@@ -67,7 +67,13 @@ export default {
   },
   // 录入三方数据
   postEntry(data) {
-    return http.get('/WMServer/wiseMotion/process/7ef7c3bb-8e10-11ec-bcb2-525400a05fe3', data)
+    // return http.get('/WMServer/wiseMotion/process/7ef7c3bb-8e10-11ec-bcb2-525400a05fe3', data)
+    return http.get('/WMServer/wiseMotion/process/54639143-f72f-4522-b1b2-2f9fe89c01d7?appkey=8b2b1c17d8874116b06b540fa601edde', data)
+  },
+  // 录入三方数据
+  getSynchronize() {
+    // return http.get('/WMServer/wiseMotion/process/7ef7c3bb-8e10-11ec-bcb2-525400a05fe3', data)
+    return http.get('/WMServer/wiseMotion/process/095abd76-ef00-45ae-9c20-751815d13070?appkey=8b2b1c17d8874116b06b540fa601edde', '')
   },
   // skylark code 登陆
   postSkylarkCode(data) {

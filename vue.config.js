@@ -19,7 +19,7 @@ module.exports = {
   outputDir: 'population_base',
   chainWebpack: (config) => {
     config.plugin("html").tap((args) => {
-      args[0].title = "人口库数据表格查看"
+      args[0].title = "社区小脑"
       return args
     })
     // 添加别名
@@ -48,11 +48,13 @@ module.exports = {
   devServer: {
     proxy: {
       '/apis': {
-        target: 'https://gxzh.cdht.gov.cn',
+        // target: 'https://gxzh.cdht.gov.cn',
+        target: 'http://zhxssq.web.cdyoue.com',
         changOrigin: true,
       },
       '/oauth': {
-        target: 'https://gxzh.cdht.gov.cn',
+        // target: 'https://gxzh.cdht.gov.cn',
+        target: 'http://zhxssq.web.cdyoue.com',
         changOrigin: true,
       },
       '/WMServer': {

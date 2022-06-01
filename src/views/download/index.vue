@@ -93,7 +93,6 @@ export default {
               // excelObj[items.name] = ''
             }
             // excelArr.push(excelObj)
-
             await this.getAllTableData()
             const AllTable = []
             for (const Element of this.allData) {
@@ -236,6 +235,18 @@ export default {
       }
 
       return buf
+    },
+    // 获取26个英文字母用来表示excel的列
+    getCharCol(n) {
+      let temCol = '',
+        s = '',
+        m = 0
+      while (n > 0) {
+        m = n % 26 + 1
+        s = String.fromCharCode(m + 64) + s
+        n = (n - m) / 26
+      }
+      return s
     },
   },
 }

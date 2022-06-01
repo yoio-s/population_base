@@ -20,10 +20,16 @@
         >
           查询
         </el-button>
-        <el-button v-if="AdminData.mobile === '18202315651'" size="mini" style="margin-right: 8px" type="primary"
+
+        <el-button v-if="inputButtonShow"  size="mini" style="margin-right: 8px" type="primary"
+                   @click="handleSynchronize">
+          数据同步
+        </el-button>
+        <el-button v-if="inputButtonShow"  size="mini" type="primary"
                    @click="handleEntry">
           跨系统录入
         </el-button>
+
       </div>
       <div style="display: flex">
         <div style="display: flex" v-if="$store.state.permissions_add">
@@ -42,6 +48,10 @@
               <i class="el-icon-s-grid"></i> 显示字段
             </span>
             <el-dropdown-menu class="drop_field_filter" slot="dropdown">
+              <el-dropdown-item class="all_field_select" command="select_all_menu">
+                <div class="select_all" @click="fieldsSelectAll">全选</div>
+                <div class="reverse_election" @click="fieldsReverseElection">反选</div>
+              </el-dropdown-item>
               <el-dropdown-item v-for="field in tableFields" :key="field.id" :command="field.key"
                                 :style="tableFieldsCheck.some(e => e.key === field.key) ? 'color: #2f80ed':''">
                 {{ field.name }}<i v-if="tableFieldsCheck.some(e => e.key === field.key)" class="el-icon-check"></i>
@@ -54,6 +64,23 @@
                      @click="addClick()">添加
           </el-button>
           <ExcelBtn></ExcelBtn>
+        </div>
+        <div v-else>
+          <el-dropdown style="margin-right: 16px; cursor: pointer" :hide-on-click="false" @command="handleCheckCommand">
+            <span class="el-dropdown-link btn_field_show">
+              <i class="el-icon-s-grid"></i> 显示字段
+            </span>
+            <el-dropdown-menu class="drop_field_filter" slot="dropdown">
+              <el-dropdown-item class="all_field_select" command="select_all_menu">
+                <div class="select_all" @click="fieldsSelectAll">全选</div>
+                <div class="reverse_election" @click="fieldsReverseElection">反选</div>
+              </el-dropdown-item>
+              <el-dropdown-item v-for="field in tableFields" :key="field.id" :command="field.key"
+                                :style="tableFieldsCheck.some(e => e.key === field.key) ? 'color: #2f80ed':''">
+                {{ field.name }}<i v-if="tableFieldsCheck.some(e => e.key === field.key)" class="el-icon-check"></i>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </div>
         <!--        <el-button style="margin-left: 16px" plain size="mini" >下载数据</el-button>-->
         <Download :filter="filterObj"></Download>
@@ -79,6 +106,7 @@
         :label="items.name"
         min-width="165"
         :show-overflow-tooltip="true"
+        :render-header="renderHeader"
       >
       </el-table-column>
       <el-table-column
@@ -173,13 +201,19 @@ export default {
       filterFieldsmain: [], // 筛选参数选择主
       filterFields: [], // 筛选参数选择
       filterObj: {}, // 筛选条件
-      filterSlot: ['GXSJ'], // 排序
+      filterSlot: ['id'], // 排序
       multipleSelection: [], // 批量删除
       checkNum: 0,
+      inputButtonShow: false,
     }
   },
   async mounted() {
     this.tableNameType = this.$route.query.type
+
+    if(this.AdminData.mobile === '18202315651') {
+      // 18202315651
+      this.inputButtonShow = true
+    }
     // this.tableHeight = (650/900)*window.innerHeight
     // console.log('tableName', this.$store.state.tableName)
     // this.$store.commit('edit','wllz')
@@ -199,6 +233,22 @@ export default {
     },
   },
   methods: {
+    renderHeader(h, data) {
+      return h("span", [
+        h(
+          "el-tooltip",
+          {
+            attrs: {
+              class: "item",
+              effect: "dark",
+              content: data.column.label,
+              placement: "top",
+            },
+          },
+          [h("span", data.column.label)]
+        ),
+      ]);
+    },
     async getTableLabel() {
       const loading = this.$loading({
         lock: true,
@@ -240,7 +290,7 @@ export default {
           token: this.AdminData.token,
           filter: {},
           order_by: [
-            'GXSJ',
+            'id',
           ],
           serializer: 'default',
         }
@@ -320,20 +370,49 @@ export default {
       }
     },
     handleCheckCommand(command) {
-      const index = this.tableFieldsCheck.findIndex(field => {
-        return field.key === command
-      })
-      if (index !== -1) {
-        this.tableFieldsCheck.splice(index, 1)
-      } else {
-        const findIndex = this.tableFields.findIndex(field => {
+      if(command !== 'select_all_menu') {
+        const index = this.tableFieldsCheck.findIndex(field => {
           return field.key === command
         })
-        const item = this.tableFields.find(field => {
-          return field.key === command
+        if (index !== -1) {
+          this.tableFieldsCheck.splice(index, 1)
+        } else {
+          const findIndex = this.tableFields.findIndex(field => {
+            return field.key === command
+          })
+          const item = this.tableFields.find(field => {
+            return field.key === command
+          })
+          this.tableFieldsCheck.splice(findIndex, 0, item)
+          // this.tableFieldsCheck.push()
+        }
+        this.common.setLocalStorage(this.tableName + 'TABLE_HIDDEN', this.tableFieldsCheck)
+      }
+    },
+    // 字段全选
+    fieldsSelectAll() {
+      for (const tableField of this.tableFields) {
+        console.log(tableField)
+        const index = this.tableFieldsCheck.findIndex(field => {
+          return field.key === tableField.key
         })
-        this.tableFieldsCheck.splice(findIndex, 0, item)
-        // this.tableFieldsCheck.push()
+        if (index === -1) {
+          this.tableFieldsCheck.splice(index, 0, tableField)
+        }
+      }
+      this.common.setLocalStorage(this.tableName + 'TABLE_HIDDEN', this.tableFieldsCheck)
+    },
+    // 字段反选
+    fieldsReverseElection() {
+      for (const tableField of this.tableFields) {
+        const index = this.tableFieldsCheck.findIndex(field => {
+          return field.key === tableField.key
+        })
+        if (index !== -1) {
+          this.tableFieldsCheck.splice(index, 1)
+        } else {
+          this.tableFieldsCheck.splice(index, 0, tableField)
+        }
       }
       this.common.setLocalStorage(this.tableName + 'TABLE_HIDDEN', this.tableFieldsCheck)
     },
@@ -410,27 +489,23 @@ export default {
       this.searchFilter()
     },
 
+    // 跨系统录入
     async handleEntry() {
-      const parames = {
-        userName: this.tableData[0].Name,
-        mPhone: this.tableData[0].PhoneNum,
-        cardId: this.tableData[0].CertificateNum,
-        bljc: this.tableData[0].test1,
-        styc: this.tableData[0].test2,
-        jkm: this.tableData[0].test3,
-        jwlj: this.tableData[0].test4,
-        swlj: this.tableData[0].test5,
-        houseNumber: this.tableData[0].test6,
-        lydz: this.tableData[0].test7,
-        cfrq: this.tableData[0].test8,
-        darq: this.tableData[0].test9,
-        jzd: this.tableData[0].test10,
-        jzdz: this.tableData[0].test11,
-        jtgj: this.tableData[0].test12,
-        bblx: this.tableData[0].test14,
-        hsbg: this.tableData[0].test6,
+      const fieldMap = this.globals.xiShu_fieldMap
+      for (const table of this.tableData) {
+        const params = {}
+        for (const field in fieldMap) {
+          if(table[fieldMap[field]]) {
+            params[field] = table[fieldMap[field]]
+          }
+        }
+        await this.api.postEntry(params)
       }
-      await this.api.postEntry(parames)
+    },
+    // 数据同步
+    handleSynchronize() {
+      // window.open('http://www.wosoo.net:18089/WMServer/wiseMotion/process/095abd76-ef00-45ae-9c20-751815d13070?appkey=6ba43ee4179d4fe08462c5476e432caf')
+      this.api.getSynchronize()
     },
 
     handleClose(tag) {
@@ -609,6 +684,8 @@ export default {
 }
 
 .drop_field_filter {
+  overflow-y: auto;
+  max-height: 80vh;
   .el-dropdown-menu__item {
     min-width: 100px;
     display: flex;
@@ -617,6 +694,17 @@ export default {
     color: #333333;
     font-size: 14px;
     font-weight: 500;
+  }
+  .all_field_select {
+    &:hover {
+      background: none;
+    }
+    .reverse_election {
+
+    }
+    .select_all {
+
+    }
   }
 }
 
