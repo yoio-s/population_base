@@ -49,12 +49,12 @@ module.exports = {
     proxy: {
       '/apis': {
         // target: 'https://gxzh.cdht.gov.cn',
-        target: 'http://zhxssq.web.cdyoue.com',
+        target: 'https://szdm.web.cdyoue.com/',
         changOrigin: true,
       },
       '/oauth': {
         // target: 'https://gxzh.cdht.gov.cn',
-        target: 'http://zhxssq.web.cdyoue.com',
+        target: 'https://szdm.web.cdyoue.com/',
         changOrigin: true,
       },
       '/WMServer': {
